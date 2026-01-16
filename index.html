@@ -1,0 +1,696 @@
+<!DOCTYPE html>
+<html lang="ja" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FlowSync - チームの生産性を最大化する</title>
+    <meta name="description" content="次世代のプロジェクト管理ツールで、チームのコラボレーションを加速させましょう。">
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Tailwind Config -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'Noto Sans JP', 'sans-serif'],
+                    },
+                    colors: {
+                        primary: {
+                            50: '#eff6ff',
+                            100: '#dbeafe',
+                            500: '#3b82f6',
+                            600: '#2563eb',
+                            700: '#1d4ed8',
+                            900: '#1e3a8a',
+                        },
+                        accent: {
+                            500: '#8b5cf6', // Violet
+                        }
+                    },
+                    animation: {
+                        'blob': 'blob 7s infinite',
+                        'float': 'float 6s ease-in-out infinite',
+                    },
+                    keyframes: {
+                        blob: {
+                            '0%': { transform: 'translate(0px, 0px) scale(1)' },
+                            '33%': { transform: 'translate(30px, -50px) scale(1.1)' },
+                            '66%': { transform: 'translate(-20px, 20px) scale(0.9)' },
+                            '100%': { transform: 'translate(0px, 0px) scale(1)' },
+                        },
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0)' },
+                            '50%': { transform: 'translateY(-20px)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+
+    <style>
+        /* カスタムスクロールバー */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+
+        /* アニメーション用クラス */
+        .reveal-on-scroll {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.8s cubic-bezier(0.5, 0, 0, 1);
+        }
+        .reveal-visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* 抽象的な背景装飾 */
+        .bg-grid-pattern {
+            background-image: radial-gradient(#cbd5e1 1px, transparent 1px);
+            background-size: 40px 40px;
+        }
+    </style>
+</head>
+<body class="font-sans text-slate-800 bg-white antialiased overflow-x-hidden">
+
+    <!-- ナビゲーションバー -->
+    <nav class="fixed w-full z-50 transition-all duration-300" id="navbar">
+        <div class="absolute inset-0 bg-white/70 backdrop-blur-md border-b border-slate-100"></div>
+        <div class="container mx-auto px-6 relative">
+            <div class="flex items-center justify-between h-20">
+                <!-- ロゴ -->
+                <a href="#" class="flex items-center gap-2 group">
+                    <div class="w-8 h-8 bg-gradient-to-br from-primary-600 to-accent-500 rounded-lg flex items-center justify-center text-white text-lg font-bold shadow-lg shadow-primary-500/30 group-hover:scale-105 transition-transform">
+                        F
+                    </div>
+                    <span class="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-slate-800 to-slate-600">FlowSync</span>
+                </a>
+
+                <!-- デスクトップメニュー -->
+                <div class="hidden md:flex items-center space-x-8">
+                    <a href="#features" class="text-sm font-medium text-slate-600 hover:text-primary-600 transition-colors">機能</a>
+                    <a href="#solutions" class="text-sm font-medium text-slate-600 hover:text-primary-600 transition-colors">ソリューション</a>
+                    <a href="#pricing" class="text-sm font-medium text-slate-600 hover:text-primary-600 transition-colors">料金プラン</a>
+                    <a href="#faq" class="text-sm font-medium text-slate-600 hover:text-primary-600 transition-colors">FAQ</a>
+                </div>
+
+                <!-- アクションボタン -->
+                <div class="hidden md:flex items-center gap-4">
+                    <a href="#" class="text-sm font-medium text-slate-600 hover:text-primary-600 transition-colors">ログイン</a>
+                    <a href="#" class="px-5 py-2.5 text-sm font-medium text-white bg-slate-900 rounded-full hover:bg-slate-800 transition-all shadow-lg hover:shadow-slate-900/20 active:scale-95">無料で始める</a>
+                </div>
+
+                <!-- モバイルメニューボタン -->
+                <button id="mobile-menu-btn" class="md:hidden text-slate-600 focus:outline-none">
+                    <i class="ph ph-list text-2xl"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- モバイルメニュー (初期状態は非表示) -->
+        <div id="mobile-menu" class="hidden md:hidden absolute w-full bg-white border-b border-slate-100 shadow-xl">
+            <div class="px-6 py-4 space-y-4">
+                <a href="#features" class="block text-slate-600 hover:text-primary-600 font-medium">機能</a>
+                <a href="#solutions" class="block text-slate-600 hover:text-primary-600 font-medium">ソリューション</a>
+                <a href="#pricing" class="block text-slate-600 hover:text-primary-600 font-medium">料金プラン</a>
+                <hr class="border-slate-100">
+                <a href="#" class="block text-slate-600 hover:text-primary-600 font-medium">ログイン</a>
+                <a href="#" class="block w-full text-center px-5 py-3 text-white bg-primary-600 rounded-lg hover:bg-primary-700 font-medium">無料で始める</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- ヒーローセクション -->
+    <section class="relative pt-32 pb-20 lg:pt-48 lg:pb-32 overflow-hidden">
+        <!-- 背景装飾 -->
+        <div class="absolute inset-0 -z-10 bg-grid-pattern opacity-[0.4]"></div>
+        <div class="absolute top-0 -left-4 w-72 h-72 bg-purple-300 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob"></div>
+        <div class="absolute top-0 -right-4 w-72 h-72 bg-yellow-300 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-2000"></div>
+        <div class="absolute -bottom-8 left-20 w-72 h-72 bg-pink-300 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-4000"></div>
+
+        <div class="container mx-auto px-6 text-center">
+            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary-50 border border-primary-100 text-primary-700 text-xs font-semibold mb-8 reveal-on-scroll">
+                <span class="w-2 h-2 rounded-full bg-primary-600 animate-pulse"></span>
+                v2.0 リリース: 新しいAI機能が登場
+            </div>
+            
+            <h1 class="text-4xl md:text-6xl lg:text-7xl font-black tracking-tight text-slate-900 mb-6 leading-tight reveal-on-scroll" style="transition-delay: 100ms;">
+                チームの可能性を、<br>
+                <span class="text-transparent bg-clip-text bg-gradient-to-r from-primary-600 to-accent-500">無限大に広げる。</span>
+            </h1>
+            
+            <p class="text-lg md:text-xl text-slate-600 mb-10 max-w-2xl mx-auto reveal-on-scroll" style="transition-delay: 200ms;">
+                FlowSyncは、タスク管理、チャット、ドキュメント作成を一つの場所に統合。
+                煩雑なツール切り替えをなくし、本来のクリエイティブな仕事に集中できます。
+            </p>
+            
+            <div class="flex flex-col sm:flex-row items-center justify-center gap-4 reveal-on-scroll" style="transition-delay: 300ms;">
+                <a href="#" class="w-full sm:w-auto px-8 py-4 text-white bg-slate-900 rounded-full hover:bg-slate-800 transition-all shadow-xl hover:shadow-slate-900/30 hover:-translate-y-1 font-bold flex items-center justify-center gap-2">
+                    無料で試す
+                    <i class="ph ph-arrow-right font-bold"></i>
+                </a>
+                <a href="#" class="w-full sm:w-auto px-8 py-4 text-slate-700 bg-white border border-slate-200 rounded-full hover:bg-slate-50 transition-all font-bold flex items-center justify-center gap-2 group">
+                    <i class="ph-fill ph-play-circle text-xl text-primary-600 group-hover:scale-110 transition-transform"></i>
+                    デモを見る
+                </a>
+            </div>
+
+            <!-- ダッシュボードのモックアップ -->
+            <div class="mt-20 relative max-w-5xl mx-auto reveal-on-scroll" style="transition-delay: 400ms;">
+                <div class="absolute -inset-1 bg-gradient-to-r from-primary-600 to-accent-500 rounded-2xl blur opacity-20"></div>
+                <div class="relative rounded-2xl bg-slate-900 border border-slate-800 shadow-2xl overflow-hidden animate-float">
+                    <!-- ブラウザヘッダー -->
+                    <div class="flex items-center gap-2 px-4 py-3 bg-slate-800 border-b border-slate-700">
+                        <div class="w-3 h-3 rounded-full bg-red-500"></div>
+                        <div class="w-3 h-3 rounded-full bg-yellow-500"></div>
+                        <div class="w-3 h-3 rounded-full bg-green-500"></div>
+                    </div>
+                    <!-- ダッシュボードUI (簡易版) -->
+                    <div class="grid grid-cols-12 h-[300px] md:h-[500px] bg-slate-900">
+                        <!-- サイドバー -->
+                        <div class="col-span-2 border-r border-slate-800 p-4 hidden md:block">
+                            <div class="space-y-4">
+                                <div class="h-2 w-20 bg-slate-700 rounded"></div>
+                                <div class="h-2 w-16 bg-slate-800 rounded"></div>
+                                <div class="h-2 w-24 bg-slate-800 rounded"></div>
+                                <div class="h-2 w-20 bg-slate-800 rounded"></div>
+                            </div>
+                        </div>
+                        <!-- メインコンテンツ -->
+                        <div class="col-span-12 md:col-span-10 p-6">
+                            <div class="flex justify-between items-center mb-8">
+                                <div class="h-8 w-48 bg-slate-700 rounded"></div>
+                                <div class="h-8 w-8 bg-primary-600 rounded-full"></div>
+                            </div>
+                            <div class="grid grid-cols-3 gap-4 mb-8">
+                                <div class="h-32 bg-slate-800 rounded-xl border border-slate-700 p-4">
+                                    <div class="h-8 w-8 bg-blue-500/20 rounded-lg mb-4"></div>
+                                    <div class="h-2 w-20 bg-slate-600 rounded mb-2"></div>
+                                    <div class="h-6 w-12 bg-slate-500 rounded"></div>
+                                </div>
+                                <div class="h-32 bg-slate-800 rounded-xl border border-slate-700 p-4">
+                                    <div class="h-8 w-8 bg-purple-500/20 rounded-lg mb-4"></div>
+                                    <div class="h-2 w-20 bg-slate-600 rounded mb-2"></div>
+                                    <div class="h-6 w-12 bg-slate-500 rounded"></div>
+                                </div>
+                                <div class="h-32 bg-slate-800 rounded-xl border border-slate-700 p-4">
+                                    <div class="h-8 w-8 bg-green-500/20 rounded-lg mb-4"></div>
+                                    <div class="h-2 w-20 bg-slate-600 rounded mb-2"></div>
+                                    <div class="h-6 w-12 bg-slate-500 rounded"></div>
+                                </div>
+                            </div>
+                            <div class="space-y-3">
+                                <div class="h-12 w-full bg-slate-800/50 rounded-lg border border-slate-700"></div>
+                                <div class="h-12 w-full bg-slate-800/50 rounded-lg border border-slate-700"></div>
+                                <div class="h-12 w-full bg-slate-800/50 rounded-lg border border-slate-700"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- ロゴクラウド -->
+            <div class="mt-20 pt-10 border-t border-slate-200">
+                <p class="text-sm text-slate-500 mb-6 font-medium">世界中の革新的なチームに信頼されています</p>
+                <div class="flex flex-wrap justify-center items-center gap-8 md:gap-16 opacity-60 grayscale hover:grayscale-0 transition-all duration-500">
+                    <div class="text-2xl font-bold font-serif italic text-slate-800">Acme Corp</div>
+                    <div class="text-2xl font-bold tracking-tighter text-slate-800">GlobalBank</div>
+                    <div class="text-2xl font-black text-slate-800">NEXUS</div>
+                    <div class="text-xl font-bold uppercase tracking-widest text-slate-800">Starlight</div>
+                    <div class="text-2xl font-bold text-slate-800 flex items-center gap-1"><span class="w-4 h-4 bg-slate-800 rounded-full"></span>Circle</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 特徴セクション -->
+    <section id="features" class="py-24 bg-slate-50">
+        <div class="container mx-auto px-6">
+            <div class="text-center max-w-3xl mx-auto mb-16 reveal-on-scroll">
+                <h2 class="text-primary-600 font-semibold tracking-wide uppercase text-sm mb-2">FEATURES</h2>
+                <h3 class="text-3xl md:text-4xl font-bold text-slate-900 mb-4">仕事をスムーズにする、<br>必要なすべてを。</h3>
+                <p class="text-slate-600 text-lg">
+                    FlowSyncは単なるタスク管理ツールではありません。チームのコミュニケーションと実行力を高めるためのプラットフォームです。
+                </p>
+            </div>
+
+            <div class="grid md:grid-cols-3 gap-8">
+                <!-- Feature 1 -->
+                <div class="bg-white p-8 rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1 group reveal-on-scroll">
+                    <div class="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center text-blue-600 text-2xl mb-6 group-hover:scale-110 transition-transform">
+                        <i class="ph ph-kanban"></i>
+                    </div>
+                    <h4 class="text-xl font-bold text-slate-900 mb-3">スマートカンバン</h4>
+                    <p class="text-slate-600 leading-relaxed">
+                        ドラッグ＆ドロップで直感的にタスクを管理。進捗状況を一目で把握し、ボトルネックを解消します。
+                    </p>
+                </div>
+
+                <!-- Feature 2 -->
+                <div class="bg-white p-8 rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1 group reveal-on-scroll" style="transition-delay: 100ms;">
+                    <div class="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center text-purple-600 text-2xl mb-6 group-hover:scale-110 transition-transform">
+                        <i class="ph ph-users-three"></i>
+                    </div>
+                    <h4 class="text-xl font-bold text-slate-900 mb-3">リアルタイムコラボ</h4>
+                    <p class="text-slate-600 leading-relaxed">
+                        ドキュメントの同時編集やコメント機能で、会議の時間を減らし、実行する時間を増やします。
+                    </p>
+                </div>
+
+                <!-- Feature 3 -->
+                <div class="bg-white p-8 rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1 group reveal-on-scroll" style="transition-delay: 200ms;">
+                    <div class="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center text-green-600 text-2xl mb-6 group-hover:scale-110 transition-transform">
+                        <i class="ph ph-lightning"></i>
+                    </div>
+                    <h4 class="text-xl font-bold text-slate-900 mb-3">自動化ワークフロー</h4>
+                    <p class="text-slate-600 leading-relaxed">
+                        ルーチンワークはAIにお任せ。条件を設定するだけで、タスクの割り当てや通知を自動化できます。
+                    </p>
+                </div>
+                
+                <!-- Feature 4 -->
+                <div class="bg-white p-8 rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1 group reveal-on-scroll">
+                    <div class="w-12 h-12 bg-orange-100 rounded-xl flex items-center justify-center text-orange-600 text-2xl mb-6 group-hover:scale-110 transition-transform">
+                        <i class="ph ph-chart-bar"></i>
+                    </div>
+                    <h4 class="text-xl font-bold text-slate-900 mb-3">高度な分析レポート</h4>
+                    <p class="text-slate-600 leading-relaxed">
+                        チームの生産性を可視化。データに基づいた意思決定で、プロジェクトの成功率を高めます。
+                    </p>
+                </div>
+
+                <!-- Feature 5 -->
+                <div class="bg-white p-8 rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1 group reveal-on-scroll" style="transition-delay: 100ms;">
+                    <div class="w-12 h-12 bg-pink-100 rounded-xl flex items-center justify-center text-pink-600 text-2xl mb-6 group-hover:scale-110 transition-transform">
+                        <i class="ph ph-lock-key"></i>
+                    </div>
+                    <h4 class="text-xl font-bold text-slate-900 mb-3">エンタープライズ級のセキュリティ</h4>
+                    <p class="text-slate-600 leading-relaxed">
+                        SSO、2段階認証、監査ログなど、大企業でも安心して利用できるセキュリティ機能を完備。
+                    </p>
+                </div>
+
+                <!-- Feature 6 -->
+                <div class="bg-white p-8 rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1 group reveal-on-scroll" style="transition-delay: 200ms;">
+                    <div class="w-12 h-12 bg-teal-100 rounded-xl flex items-center justify-center text-teal-600 text-2xl mb-6 group-hover:scale-110 transition-transform">
+                        <i class="ph ph-plugs"></i>
+                    </div>
+                    <h4 class="text-xl font-bold text-slate-900 mb-3">100+ の外部連携</h4>
+                    <p class="text-slate-600 leading-relaxed">
+                        Slack, GitHub, Figma, Google Workspaceなど、お使いのツールとシームレスに連携します。
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- デザイン/UIショーケース -->
+    <section class="py-24 overflow-hidden">
+        <div class="container mx-auto px-6">
+            <div class="flex flex-col lg:flex-row items-center gap-16">
+                <div class="lg:w-1/2 reveal-on-scroll">
+                    <h3 class="text-3xl md:text-4xl font-bold text-slate-900 mb-6">
+                        複雑なプロジェクトも、<br>
+                        美しく整理整頓。
+                    </h3>
+                    <p class="text-slate-600 text-lg mb-8 leading-relaxed">
+                        FlowSyncのUIは「使いやすさ」を最優先に設計されています。マニュアルを読まなくても、直感的に操作が可能。
+                        ダークモードにも完全対応しており、長時間の作業でも目が疲れません。
+                    </p>
+                    
+                    <ul class="space-y-4 mb-8">
+                        <li class="flex items-center gap-3">
+                            <i class="ph-fill ph-check-circle text-primary-600 text-xl"></i>
+                            <span class="text-slate-700 font-medium">カスタマイズ可能なダッシュボード</span>
+                        </li>
+                        <li class="flex items-center gap-3">
+                            <i class="ph-fill ph-check-circle text-primary-600 text-xl"></i>
+                            <span class="text-slate-700 font-medium">ガントチャートで工程管理</span>
+                        </li>
+                        <li class="flex items-center gap-3">
+                            <i class="ph-fill ph-check-circle text-primary-600 text-xl"></i>
+                            <span class="text-slate-700 font-medium">期限リマインダー通知</span>
+                        </li>
+                    </ul>
+
+                    <a href="#" class="text-primary-600 font-bold hover:text-primary-700 flex items-center gap-2 group">
+                        機能の詳細を見る
+                        <i class="ph ph-arrow-right group-hover:translate-x-1 transition-transform"></i>
+                    </a>
+                </div>
+                
+                <div class="lg:w-1/2 relative reveal-on-scroll">
+                    <!-- 装飾的な背景 -->
+                    <div class="absolute inset-0 bg-gradient-to-tr from-blue-100 to-purple-100 rounded-full blur-3xl opacity-60"></div>
+                    
+                    <!-- UIカード (CSSのみで作成) -->
+                    <div class="relative bg-white rounded-2xl shadow-2xl border border-slate-100 p-6 z-10 rotate-3 hover:rotate-0 transition-transform duration-500">
+                        <div class="flex items-center justify-between mb-6">
+                            <h4 class="font-bold text-lg">Q1 マーケティング計画</h4>
+                            <span class="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full font-bold">進行中</span>
+                        </div>
+                        
+                        <div class="space-y-4">
+                            <div class="bg-slate-50 p-3 rounded-lg border border-slate-100">
+                                <div class="flex justify-between mb-2">
+                                    <span class="text-sm font-semibold text-slate-700">ウェブサイト改修</span>
+                                    <i class="ph ph-dots-three text-slate-400"></i>
+                                </div>
+                                <div class="w-full bg-slate-200 h-1.5 rounded-full mb-2">
+                                    <div class="bg-primary-500 h-1.5 rounded-full w-3/4"></div>
+                                </div>
+                                <div class="flex justify-between items-center text-xs text-slate-500">
+                                    <span>残り3日</span>
+                                    <div class="flex -space-x-2">
+                                        <div class="w-6 h-6 rounded-full bg-slate-300 border-2 border-white"></div>
+                                        <div class="w-6 h-6 rounded-full bg-slate-400 border-2 border-white"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="bg-slate-50 p-3 rounded-lg border border-slate-100">
+                                <div class="flex justify-between mb-2">
+                                    <span class="text-sm font-semibold text-slate-700">SNSキャンペーン</span>
+                                    <i class="ph ph-dots-three text-slate-400"></i>
+                                </div>
+                                <div class="w-full bg-slate-200 h-1.5 rounded-full mb-2">
+                                    <div class="bg-orange-500 h-1.5 rounded-full w-1/2"></div>
+                                </div>
+                                <div class="flex justify-between items-center text-xs text-slate-500">
+                                    <span>残り1週間</span>
+                                    <div class="flex -space-x-2">
+                                        <div class="w-6 h-6 rounded-full bg-slate-300 border-2 border-white"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- フローティング要素 -->
+                        <div class="absolute -bottom-6 -right-6 bg-white p-4 rounded-xl shadow-lg border border-slate-100 flex items-center gap-3 animate-float">
+                            <div class="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center text-green-600">
+                                <i class="ph-fill ph-check"></i>
+                            </div>
+                            <div>
+                                <div class="text-sm font-bold text-slate-800">タスク完了!</div>
+                                <div class="text-xs text-slate-500">たった今</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 料金プラン -->
+    <section id="pricing" class="py-24 bg-slate-900 text-white relative overflow-hidden">
+        <!-- 背景の輝き -->
+        <div class="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full max-w-4xl bg-primary-900/50 blur-[100px] rounded-full pointer-events-none"></div>
+
+        <div class="container mx-auto px-6 relative z-10">
+            <div class="text-center max-w-3xl mx-auto mb-16 reveal-on-scroll">
+                <h2 class="text-primary-400 font-semibold tracking-wide uppercase text-sm mb-2">PRICING</h2>
+                <h3 class="text-3xl md:text-4xl font-bold mb-4">チームの規模に合わせたプラン</h3>
+                <p class="text-slate-400 text-lg">
+                    初期費用なし。いつでもキャンセル可能。
+                </p>
+                
+                <!-- 年払いトグル -->
+                <div class="mt-8 flex items-center justify-center gap-4">
+                    <span class="text-sm font-medium text-slate-300">月払い</span>
+                    <button class="w-14 h-8 bg-primary-600 rounded-full relative transition-colors focus:outline-none focus:ring-2 focus:ring-primary-400 focus:ring-offset-2 focus:ring-offset-slate-900">
+                        <span class="absolute right-1 top-1 w-6 h-6 bg-white rounded-full transition-transform"></span>
+                    </button>
+                    <span class="text-sm font-medium text-white">年払い <span class="text-xs text-primary-300 ml-1">(20% OFF)</span></span>
+                </div>
+            </div>
+
+            <div class="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+                <!-- Free Plan -->
+                <div class="bg-slate-800/50 backdrop-blur border border-slate-700 p-8 rounded-2xl flex flex-col reveal-on-scroll">
+                    <h4 class="text-xl font-bold mb-2">Starter</h4>
+                    <p class="text-slate-400 text-sm mb-6">個人や小規模なチーム向け</p>
+                    <div class="text-4xl font-bold mb-6">¥0 <span class="text-lg text-slate-500 font-normal">/月</span></div>
+                    <a href="#" class="block w-full py-3 text-center border border-slate-600 rounded-lg font-bold hover:bg-slate-700 transition-colors mb-8">無料で始める</a>
+                    
+                    <ul class="space-y-4 text-sm text-slate-300 flex-1">
+                        <li class="flex items-center gap-3"><i class="ph-fill ph-check text-primary-500"></i> 最大3ユーザー</li>
+                        <li class="flex items-center gap-3"><i class="ph-fill ph-check text-primary-500"></i> 5プロジェクトまで</li>
+                        <li class="flex items-center gap-3"><i class="ph-fill ph-check text-primary-500"></i> 基本的なカンバン</li>
+                        <li class="flex items-center gap-3"><i class="ph-fill ph-check text-primary-500"></i> 1GBストレージ</li>
+                    </ul>
+                </div>
+
+                <!-- Pro Plan (Popular) -->
+                <div class="bg-primary-600 p-8 rounded-2xl flex flex-col relative transform md:-translate-y-4 shadow-2xl shadow-primary-900/50 reveal-on-scroll" style="transition-delay: 100ms;">
+                    <div class="absolute top-0 right-0 bg-accent-500 text-white text-xs font-bold px-3 py-1 rounded-bl-lg rounded-tr-lg">人気</div>
+                    <h4 class="text-xl font-bold mb-2">Pro</h4>
+                    <p class="text-primary-100 text-sm mb-6">成長中のビジネスに最適</p>
+                    <div class="text-4xl font-bold mb-6">¥1,200 <span class="text-lg text-primary-200 font-normal">/月</span></div>
+                    <a href="#" class="block w-full py-3 text-center bg-white text-primary-600 rounded-lg font-bold hover:bg-slate-50 transition-colors mb-8 shadow-lg">14日間無料で試す</a>
+                    
+                    <ul class="space-y-4 text-sm text-white flex-1">
+                        <li class="flex items-center gap-3"><i class="ph-fill ph-check text-white"></i> 15ユーザーまで</li>
+                        <li class="flex items-center gap-3"><i class="ph-fill ph-check text-white"></i> プロジェクト無制限</li>
+                        <li class="flex items-center gap-3"><i class="ph-fill ph-check text-white"></i> ガントチャート & タイムライン</li>
+                        <li class="flex items-center gap-3"><i class="ph-fill ph-check text-white"></i> AI自動化機能</li>
+                        <li class="flex items-center gap-3"><i class="ph-fill ph-check text-white"></i> 優先サポート</li>
+                    </ul>
+                </div>
+
+                <!-- Enterprise Plan -->
+                <div class="bg-slate-800/50 backdrop-blur border border-slate-700 p-8 rounded-2xl flex flex-col reveal-on-scroll" style="transition-delay: 200ms;">
+                    <h4 class="text-xl font-bold mb-2">Enterprise</h4>
+                    <p class="text-slate-400 text-sm mb-6">大規模な組織向け</p>
+                    <div class="text-4xl font-bold mb-6">Custom</div>
+                    <a href="#" class="block w-full py-3 text-center border border-slate-600 rounded-lg font-bold hover:bg-slate-700 transition-colors mb-8">お問い合わせ</a>
+                    
+                    <ul class="space-y-4 text-sm text-slate-300 flex-1">
+                        <li class="flex items-center gap-3"><i class="ph-fill ph-check text-primary-500"></i> ユーザー無制限</li>
+                        <li class="flex items-center gap-3"><i class="ph-fill ph-check text-primary-500"></i> SSO & セキュリティ監査</li>
+                        <li class="flex items-center gap-3"><i class="ph-fill ph-check text-primary-500"></i> 専用アカウントマネージャー</li>
+                        <li class="flex items-center gap-3"><i class="ph-fill ph-check text-primary-500"></i> カスタムAPI連携</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- FAQセクション -->
+    <section id="faq" class="py-24 bg-white">
+        <div class="container mx-auto px-6 max-w-3xl">
+            <h2 class="text-3xl font-bold text-center text-slate-900 mb-12 reveal-on-scroll">よくある質問</h2>
+            
+            <div class="space-y-4 reveal-on-scroll">
+                <!-- FAQ Item 1 -->
+                <div class="border border-slate-200 rounded-xl overflow-hidden">
+                    <button class="faq-toggle w-full px-6 py-4 flex items-center justify-between bg-slate-50 hover:bg-slate-100 transition-colors text-left focus:outline-none">
+                        <span class="font-bold text-slate-800">無料プランに期限はありますか？</span>
+                        <i class="ph ph-caret-down transition-transform duration-300"></i>
+                    </button>
+                    <div class="faq-content hidden px-6 py-4 text-slate-600 border-t border-slate-200">
+                        いいえ、Starterプランはずっと無料でご利用いただけます。クレジットカードの登録も不要です。チームが成長して機能がさらに必要になった場合に、Proプランへのアップグレードをご検討ください。
+                    </div>
+                </div>
+
+                <!-- FAQ Item 2 -->
+                <div class="border border-slate-200 rounded-xl overflow-hidden">
+                    <button class="faq-toggle w-full px-6 py-4 flex items-center justify-between bg-slate-50 hover:bg-slate-100 transition-colors text-left focus:outline-none">
+                        <span class="font-bold text-slate-800">セキュリティ対策はどうなっていますか？</span>
+                        <i class="ph ph-caret-down transition-transform duration-300"></i>
+                    </button>
+                    <div class="faq-content hidden px-6 py-4 text-slate-600 border-t border-slate-200">
+                        FlowSyncは、すべてのデータをSSL/TLS暗号化通信で保護し、保存データもAES-256で暗号化しています。定期的なバックアップと第三者機関によるセキュリティ監査を実施しており、安心してご利用いただけます。
+                    </div>
+                </div>
+
+                <!-- FAQ Item 3 -->
+                <div class="border border-slate-200 rounded-xl overflow-hidden">
+                    <button class="faq-toggle w-full px-6 py-4 flex items-center justify-between bg-slate-50 hover:bg-slate-100 transition-colors text-left focus:outline-none">
+                        <span class="font-bold text-slate-800">日本語のサポートはありますか？</span>
+                        <i class="ph ph-caret-down transition-transform duration-300"></i>
+                    </button>
+                    <div class="faq-content hidden px-6 py-4 text-slate-600 border-t border-slate-200">
+                        はい、もちろんです。日本のチームが平日10:00〜18:00の間、チャットおよびメールでサポート対応を行っております。ドキュメントもすべて日本語で整備されています。
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTAセクション -->
+    <section class="py-24 bg-slate-50">
+        <div class="container mx-auto px-6">
+            <div class="bg-gradient-to-r from-slate-900 to-slate-800 rounded-3xl p-10 md:p-16 text-center relative overflow-hidden shadow-2xl reveal-on-scroll">
+                <!-- 装飾 -->
+                <div class="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
+                <div class="absolute bottom-0 left-0 w-64 h-64 bg-primary-600/20 rounded-full blur-3xl translate-y-1/2 -translate-x-1/2"></div>
+
+                <div class="relative z-10">
+                    <h2 class="text-3xl md:text-5xl font-bold text-white mb-6">今すぐ、働き方を変えよう。</h2>
+                    <p class="text-slate-300 text-lg mb-10 max-w-2xl mx-auto">
+                        数千のチームがFlowSyncを使って、より速く、より良い結果を出しています。<br>
+                        まずは14日間の無料トライアルから。
+                    </p>
+                    <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
+                        <a href="#" class="w-full sm:w-auto px-8 py-4 bg-primary-600 text-white rounded-full font-bold hover:bg-primary-500 transition-all shadow-lg hover:shadow-primary-600/40">無料で始める</a>
+                        <a href="#" class="w-full sm:w-auto px-8 py-4 bg-white/10 text-white border border-white/20 rounded-full font-bold hover:bg-white/20 transition-all backdrop-blur-sm">資料ダウンロード</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- フッター -->
+    <footer class="bg-white border-t border-slate-100 pt-16 pb-8">
+        <div class="container mx-auto px-6">
+            <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-8 mb-12">
+                <div class="col-span-2 lg:col-span-2">
+                    <a href="#" class="flex items-center gap-2 mb-4">
+                        <div class="w-6 h-6 bg-gradient-to-br from-primary-600 to-accent-500 rounded flex items-center justify-center text-white text-xs font-bold">F</div>
+                        <span class="text-lg font-bold text-slate-800">FlowSync</span>
+                    </a>
+                    <p class="text-slate-500 text-sm mb-6 max-w-xs">
+                        チームのコラボレーションを再定義するプラットフォーム。
+                        世界中のイノベーターに選ばれています。
+                    </p>
+                    <div class="flex gap-4">
+                        <a href="#" class="text-slate-400 hover:text-slate-600 transition-colors"><i class="ph-fill ph-twitter-logo text-xl"></i></a>
+                        <a href="#" class="text-slate-400 hover:text-slate-600 transition-colors"><i class="ph-fill ph-facebook-logo text-xl"></i></a>
+                        <a href="#" class="text-slate-400 hover:text-slate-600 transition-colors"><i class="ph-fill ph-linkedin-logo text-xl"></i></a>
+                        <a href="#" class="text-slate-400 hover:text-slate-600 transition-colors"><i class="ph-fill ph-instagram-logo text-xl"></i></a>
+                    </div>
+                </div>
+                
+                <div>
+                    <h5 class="font-bold text-slate-800 mb-4">製品</h5>
+                    <ul class="space-y-2 text-sm text-slate-500">
+                        <li><a href="#" class="hover:text-primary-600 transition-colors">機能一覧</a></li>
+                        <li><a href="#" class="hover:text-primary-600 transition-colors">料金プラン</a></li>
+                        <li><a href="#" class="hover:text-primary-600 transition-colors">セキュリティ</a></li>
+                        <li><a href="#" class="hover:text-primary-600 transition-colors">ロードマップ</a></li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h5 class="font-bold text-slate-800 mb-4">リソース</h5>
+                    <ul class="space-y-2 text-sm text-slate-500">
+                        <li><a href="#" class="hover:text-primary-600 transition-colors">ブログ</a></li>
+                        <li><a href="#" class="hover:text-primary-600 transition-colors">導入事例</a></li>
+                        <li><a href="#" class="hover:text-primary-600 transition-colors">ヘルプセンター</a></li>
+                        <li><a href="#" class="hover:text-primary-600 transition-colors">APIドキュメント</a></li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h5 class="font-bold text-slate-800 mb-4">会社情報</h5>
+                    <ul class="space-y-2 text-sm text-slate-500">
+                        <li><a href="#" class="hover:text-primary-600 transition-colors">会社概要</a></li>
+                        <li><a href="#" class="hover:text-primary-600 transition-colors">採用情報</a></li>
+                        <li><a href="#" class="hover:text-primary-600 transition-colors">お問い合わせ</a></li>
+                        <li><a href="#" class="hover:text-primary-600 transition-colors">プライバシー</a></li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="border-t border-slate-100 pt-8 flex flex-col md:flex-row items-center justify-between gap-4">
+                <p class="text-slate-400 text-xs text-center md:text-left">
+                    &copy; 2024 FlowSync Inc. All rights reserved.
+                </p>
+                <div class="flex gap-6 text-xs text-slate-500">
+                    <a href="#" class="hover:text-slate-800">利用規約</a>
+                    <a href="#" class="hover:text-slate-800">プライバシーポリシー</a>
+                    <a href="#" class="hover:text-slate-800">特定商取引法に基づく表記</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- JavaScript -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // モバイルメニューのトグル
+            const menuBtn = document.getElementById('mobile-menu-btn');
+            const mobileMenu = document.getElementById('mobile-menu');
+
+            menuBtn.addEventListener('click', () => {
+                mobileMenu.classList.toggle('hidden');
+                const icon = menuBtn.querySelector('i');
+                if (mobileMenu.classList.contains('hidden')) {
+                    icon.classList.remove('ph-x');
+                    icon.classList.add('ph-list');
+                } else {
+                    icon.classList.remove('ph-list');
+                    icon.classList.add('ph-x');
+                }
+            });
+
+            // ナビゲーションバーのスクロール効果
+            const navbar = document.getElementById('navbar');
+            window.addEventListener('scroll', () => {
+                if (window.scrollY > 10) {
+                    navbar.classList.add('shadow-sm');
+                } else {
+                    navbar.classList.remove('shadow-sm');
+                }
+            });
+
+            // FAQのアコーディオン
+            const faqToggles = document.querySelectorAll('.faq-toggle');
+            faqToggles.forEach(toggle => {
+                toggle.addEventListener('click', () => {
+                    const content = toggle.nextElementSibling;
+                    const icon = toggle.querySelector('i');
+                    
+                    content.classList.toggle('hidden');
+                    if (content.classList.contains('hidden')) {
+                        icon.style.transform = 'rotate(0deg)';
+                    } else {
+                        icon.style.transform = 'rotate(180deg)';
+                    }
+                });
+            });
+
+            // スクロール時のフェードインアニメーション
+            const observerOptions = {
+                threshold: 0.1,
+                rootMargin: "0px 0px -50px 0px"
+            };
+
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('reveal-visible');
+                        observer.unobserve(entry.target); // 一度表示したら監視を終了
+                    }
+                });
+            }, observerOptions);
+
+            document.querySelectorAll('.reveal-on-scroll').forEach(el => {
+                observer.observe(el);
+            });
+        });
+    </script>
+</body>
+</html>
